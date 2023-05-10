@@ -23,8 +23,8 @@ def density_and_class_ratio(X, y, normalize_density=True):
     kde0 = gaussian_kde(X[y == 0].T)
     kde1 = gaussian_kde(X[y == 1].T)
 
-    n0 = X[y == 0, ].shape[0]
-    n1 = X[y == 0, ].shape[0]
+    n0 = X[y == 0, :].shape[0]
+    n1 = X[y == 0, :].shape[0]
     ratio_estimation = lambda x: n1 * kde1(x) / (n0 * kde0(x) + n1 * kde1(x))
 
     class1_ratio = ratio_estimation(X.T)
@@ -69,6 +69,7 @@ def gen_polar_colormap(cmap0=cm.Reds,
             [Color('srgb', [r0, g0, b0]),
              Color('srgb', [r1, g1, b1])],
             space=interpolation_space,
+            out_space='srgb',
             hue=interpolation_hue_selection)
         r, g, b, _ = ci(ratio1)
 
