@@ -6,14 +6,14 @@ About
 -----
 * Python implementation of the two-class density scatterplot, which is introduced in the paper below:
   
-  * Lu et al., "Visual Analytics of Multivariate Networks with Representation Learning and Composite Variable Construction." arXiv:2303.09590, 2023. [arXiv](https://arxiv.org/abs/2303.09590)
+  * Lu et al., "Visual Analytics of Multivariate Networks with Representation Learning and Composite Variable Construction." IEEE TVCG, 2024 (Early Access). [arXiv](https://arxiv.org/abs/2303.09590)
 
 * As shown in the above example, the two-class density scatterplot allows us to see the density and class distribution at the same time.
 
 Requirements
 -----
 * Python 3
-* Tested on macOS Ventura, Ubuntu 22.0.4 LTS, and Windows 10.
+* Tested on macOS Sequoia, Ubuntu 22.0.4 LTS, and Windows 10.
 
 Installation
 -----
@@ -36,4 +36,4 @@ How to cite
 -----
 * If you use the two-class density scatterplot in your publication, please cite:
 
-  * H.-Y. Lu, T. Fujiwara, M.-Y. Chang, Y.-c. Fu, A. Ynnerman, and K.-L. Ma. “Visual Analytics of Multivariate Networks with Representation Learning and Composite Variable Construction.” arXiv:2303.09590, 2023.
+  * H.-Y. Lu, T. Fujiwara, M.-Y. Chang, Y.-c. Fu, A. Ynnerman, and K.-L. Ma. “Visual Analytics of Multivariate Networks with Representation Learning and Composite Variable Construction.” IEEE TVCG, 2024 (Early Access).
