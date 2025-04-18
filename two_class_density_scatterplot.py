@@ -104,8 +104,9 @@ def polar_colormap(radius, ratio1):
 def gen_checkviz_colormap(
     values1,
     values2,
-    corner_labs=[[100, 0, 0], [65, -30, 20], [65, 30, -20], [30, 0, 0]],
+    corner_colors=[[100, 0, 0], [65, -30, 20], [65, 30, -20], [30, 0, 0]],
     corner_coords=[[0, 0], [0, 1], [1, 0], [1, 1]],
+    in_space="lab",
     out_space="srgb-linear",
 ):
     # implementation of bivariate colormap introduced in:
@@ -115,7 +116,7 @@ def gen_checkviz_colormap(
     import numpy as np
     from scipy.interpolate import LinearNDInterpolator
 
-    interpolator = LinearNDInterpolator(corner_coords, corner_labs)
+    interpolator = LinearNDInterpolator(corner_coords, corner_colors)
     max1 = np.max(values1)
     min1 = np.min(values1)
     max2 = np.max(values2)
@@ -125,11 +126,36 @@ def gen_checkviz_colormap(
         v1 = (val1 - min1) / (max1 - min1)
         v2 = (val2 - min2) / (max2 - min2)
         lab = interpolator(v1, v2)
-        r, g, b, a = Color("lab", lab).convert(out_space)
+        r, g, b, a = Color(in_space, lab).convert(out_space)
         # coloraide returns negative value sometimes
         r, g, b, a = [max(x, 0) for x in [r, g, b, a]]
         # coloraide returns value over 1sometimes
         r, g, b, a = [min(x, 1) for x in [r, g, b, a]]
+
+        return r, g, b, a
+
+    return return_color
+
+
+def gen_image_colormap(
+    values1, values2, image_source="./colormaps/red_blue_opponent.png"
+):
+    from PIL import Image
+
+    image = np.asarray(Image.open(image_source)) / 255
+    max1 = np.max(values1)
+    min1 = np.min(values1)
+    max2 = np.max(values2)
+    min2 = np.min(values2)
+    lenx = image.shape[1]
+    leny = image.shape[0]
+
+    def return_color(val1, val2):
+        v1 = (val1 - min1) / (max1 - min1)
+        v2 = (val2 - min2) / (max2 - min2)
+        v1 = min(1, max(0, v1))
+        v2 = min(1, max(0, v2))
+        r, g, b, a = image[int((lenx - 1) * v2), int((leny - 1) * v1)]
 
         return r, g, b, a
 
@@ -149,6 +175,9 @@ if __name__ == "__main__":
     density, class1_ratio = density_and_class_ratio(X, y)
     # polar colormap
     pcmap = polar_colormap
+    # # other examples
+    # pcmap = gen_polar_colormap(cmap0=cm.PuRd, cmap1=cm.PuBu)
+    # pcmap = gen_polar_colormap(cmap0=cm.Oranges, cmap1=cm.Greens)
 
     # checkviz colormap just for comparison with polor colormap
     cvmap = gen_checkviz_colormap(density, class1_ratio)
@@ -156,20 +185,22 @@ if __name__ == "__main__":
     # cvmap = gen_checkviz_colormap(
     #     density,
     #     class1_ratio,
-    #     corner_labs=[[100, 0, 0], [68, -14, -27], [63, 55, 47], [30, 0, 0]],
+    #     corner_colors=[[100, 0, 0], [68, -14, -27], [63, 55, 47], [30, 0, 0]],
     # )
     # # example using purple and green for different way from checkviz
     # cvmap = gen_checkviz_colormap(
     #     density,
     #     class1_ratio,
-    #     corner_labs=[
-    #         [100, -30, 20],
+    #     corner_colors=[
     #         [100, 30, -20],
-    #         [0, -30, 20],
+    #         [100, -30, 20],
     #         [0, 30, -20],
+    #         [0, -30, 20],
     #     ],
     #     out_space="srgb",
     # )
+    # # example using Baum et al's HSV based colormap
+    cvmap = gen_image_colormap(density, class1_ratio)
 
     fig, axs = plt.subplots(ncols=4, figsize=(12.5, 3.5))
     # ordinary two-class colored scatteplot
@@ -227,12 +258,14 @@ if __name__ == "__main__":
     from matplotlib.colors import ListedColormap
 
     n = 200
-    angle = 60
-    projection = "polar"  # "polar" or None
-    cmap = pcmap  # e.g., pcmap, cvmap
+    angle = 70
+    projection = None  # "polar" or None
+    cmap = cvmap  # e.g., pcmap, cvmap
 
-    fig, _ = plt.subplots(1, 1)
-    c_density, c_ratio = np.meshgrid(np.linspace(0, 1, n), np.linspace(0, 1, n))
+    c_density, c_ratio = np.meshgrid(
+        np.linspace(density.min(), density.max(), n),
+        np.linspace(class1_ratio.min(), class1_ratio.max(), n),
+    )
     theta = c_ratio * (angle / 180) * np.pi - (angle / 360) * np.pi
 
     # make 1D colormap used to map location to a polar colormap
@@ -247,11 +280,16 @@ if __name__ == "__main__":
         for j in range(n):
             z[i, j] = n * i + j
 
+    fig = plt.figure(figsize=(5, 5))
     ax = plt.subplot(projection=projection)
     ax.grid(False)
-    plt.pcolormesh(theta, c_density, z, cmap=newcmp, shading="auto")
-    plt.xticks([])
-    plt.yticks([])
-    ax.axis("off")
-    # plt.savefig('./images/polar_colormap.png', transparent=True, dpi=300)
+    if projection == "polar":
+        plt.pcolormesh(theta, c_density, z, cmap=newcmp, shading="auto")
+    else:
+        plt.pcolormesh(c_ratio, c_density, z, cmap=newcmp, shading="auto")
+    ax.set_xticklabels([])
+    ax.set_yticklabels([])
+    ax.set_axis_off()
+    plt.savefig("./images/x.png", transparent=True, dpi=300)
+    plt.tight_layout()
     plt.show()
